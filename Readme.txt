@@ -41,11 +41,6 @@
 	.NET 8.0-windows10.0.19041.0
 
 
-5. 作成者情報
-	作者：小倉 照孤（Ogura Deko）
-	メール：support@fanet.work
-	Web：https://fanet.work
-	GitHub：https://github.com/dekotan24/iCrawledTw
-
-	使用しているライブラリの著作権については、それぞれに帰属します。
-	Copyright (c) Ogura Deko Program rights reserved.
+5. 注意
+	本ツールはクロールツールです。
+	Twitterの利用規約等でクロールについての記載を十分に確認した上でご利用ください。
