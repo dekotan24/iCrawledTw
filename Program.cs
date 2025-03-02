@@ -27,7 +27,6 @@ namespace iCrawledTw
 			Success
 		}
 
-		// Change the access modifier of the Settings class to public to fix CS0122
 		public class Settings
 		{
 			public bool DownloadMedia { get; set; } = true;
@@ -78,7 +77,6 @@ namespace iCrawledTw
 						SetMsg("初期化処理中です。しばらくお待ちください…", true, MsgType.Info, ConsoleColor.Magenta);
 						if (driver == null)
 						{
-							// ChromeDriverの初期化とログイン処理をここで一括実行
 							string chromeVersion = GetChromeVersion();
 							SetMsg($"検出されたChromeバージョン: {chromeVersion}", true, MsgType.Info);
 							try
@@ -117,14 +115,12 @@ namespace iCrawledTw
 
 							driver = new ChromeDriver(Path.GetDirectoryName(ChromeDriverPath), options);
 
-							// セッション復元を試みる
 							if (SessionManager.LoadSession(driver))
 							{
 								isLoggedIn = true;
 							}
 							else
 							{
-								// ログイン処理を実行
 								PerformLogin(driver, settings.TwitterUsername, settings.TwitterPassword);
 								SessionManager.SaveSession(driver);
 								isLoggedIn = true;
@@ -138,7 +134,7 @@ namespace iCrawledTw
 						break;
 					case "3":
 						ClearCache(settings);
-						SessionManager.ClearSession(); // セッションもクリア
+						SessionManager.ClearSession();
 						break;
 					case "4":
 						ExportMediaUrlsToCsv(settings);
@@ -159,7 +155,6 @@ namespace iCrawledTw
 			}
 		}
 
-		// ProcessMediaExtractionを修正（ログイン処理を削除）
 		static void ProcessMediaExtraction(Settings settings, IWebDriver driver, bool isLoggedIn)
 		{
 			SetMsg("========================================");
@@ -176,7 +171,7 @@ namespace iCrawledTw
 			try
 			{
 				driver.Navigate().GoToUrl(inputUrl);
-				Thread.Sleep(5000); // ページ読み込み待機時間を5秒に延長（ログイン済みなので不要な場合もあるが安全のため残す）
+				Thread.Sleep(5000);
 
 				List<(string Url, string TweetId)> mediaUrlsWithTweetIds = new List<(string Url, string TweetId)>();
 				string latestTweetId = null;
@@ -441,15 +436,15 @@ namespace iCrawledTw
 				return null;
 			}
 
+			// video要素を取得
+			// ネットワークリクエストから.mp4を優先的に取得、次に.m3u8
 			try
 			{
-				// ページと動画リソースがロードされるまで待機
 				WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(15));
 				wait.Until(d => ((IJavaScriptExecutor)d).ExecuteScript("return document.readyState").Equals("complete"));
 				wait.Until(d => ((IJavaScriptExecutor)d).ExecuteScript("return performance.getEntriesByType('resource').filter(r => r.name.includes('video.twimg.com')).length > 0"));
 
 				string script = @"
-            // video要素を取得
             var video = document.querySelector('video[src=""" + blobUrl.Replace("\"", "\\\"") + @"""]');
             if (video) {
                 if (video.currentSrc && !video.currentSrc.startsWith('blob:')) {
@@ -460,7 +455,6 @@ namespace iCrawledTw
                     return source.getAttribute('src');
                 }
             }
-            // ネットワークリクエストから.mp4を優先的に取得、次に.m3u8
             var resources = performance.getEntriesByType('resource').filter(r => 
                 r.name.includes('video.twimg.com'));
             var mp4Resource = resources.find(r => r.name.endsWith('.mp4'));
@@ -470,7 +464,6 @@ namespace iCrawledTw
             return null;
         ";
 				string script2 = @"
-            // video要素を取得
             var video = document.querySelector('video[src=""" + blobUrl.Replace("\"", "\\\"") + @"""]');
             if (video) {
                 if (video.currentSrc && !video.currentSrc.startsWith('blob:')) {
@@ -481,7 +474,6 @@ namespace iCrawledTw
                     return source.getAttribute('src');
                 }
             }
-            // ネットワークリクエストから.mp4を優先的に取得、次に.m3u8
             var resources = performance.getEntriesByType('resource').filter(r => 
                 r.name.includes('video.twimg.com'));
             var m3u8Resource = resources.find(r => r.name.endsWith('.m3u8'));
@@ -509,7 +501,6 @@ namespace iCrawledTw
 				SetMsg($"警告: Blobから実際のURLを取得できませんでした: {blobUrl}", true, MsgType.Warning, ConsoleColor.Magenta);
 				Log(settings, $"警告: Blobから実際のURLを取得できませんでした: {blobUrl}");
 
-				// デバッグ用: すべてのリソースを出力
 				var allResources = ((IJavaScriptExecutor)driver).ExecuteScript("return performance.getEntriesByType('resource');");
 				SetMsg($"利用可能なリソース: {JsonSerializer.Serialize(allResources)}", true, MsgType.Info);
 				Log(settings, $"利用可能なリソース: {JsonSerializer.Serialize(allResources)}");
@@ -1109,7 +1100,6 @@ namespace iCrawledTw
 
 				using (var client = new HttpClient(handler))
 				{
-					// User-AgentをWebDriverと同じにする（必要に応じて）
 					var driver2 = driver;
 					IJavaScriptExecutor jsExecutor = (IJavaScriptExecutor)driver2;
 					client.DefaultRequestHeaders.UserAgent.ParseAdd(jsExecutor.ExecuteScript("return navigator.userAgent;").ToString());
@@ -1135,7 +1125,6 @@ namespace iCrawledTw
 						}
 						string extension = string.Empty;
 
-						// クエリ文字列がある場合のみSplitを使用
 						if (media.Url.Contains("?"))
 						{
 							string[] urlParts = media.Url.Split('?');
@@ -1172,7 +1161,7 @@ namespace iCrawledTw
 											Arguments = $"-y -i \"{downloadUrl}\" -c copy \"{filePath}\"",
 											RedirectStandardOutput = true,
 											UseShellExecute = false
-											//											CreateNoWindow = true
+											// CreateNoWindow = true
 										}
 									};
 									SetMsg("Start FFMPEG encode", true, MsgType.Info);
@@ -1205,7 +1194,6 @@ namespace iCrawledTw
 							{
 								try
 								{
-									// blobで再取得
 									if (media.Url.StartsWith("blob:"))
 									{
 										SetMsg($"blob URL検出: {media.Url}、変換を試みます...", true, MsgType.Info);
@@ -1227,7 +1215,7 @@ namespace iCrawledTw
 												Arguments = $"-y -i \"{downloadUrl}\" -c copy \"{filePath}\"",
 												RedirectStandardOutput = true,
 												UseShellExecute = false
-												//												CreateNoWindow = true
+												// CreateNoWindow = true
 											}
 										};
 										SetMsg("Start FFMPEG(2) encode", true, MsgType.Info);
@@ -1354,13 +1342,12 @@ namespace iCrawledTw
 			var sessionData = new SessionData
 			{
 				Cookies = cookies,
-				Expires = DateTime.Now.AddDays(1) // セッション有効期限を仮に1日とする
+				Expires = DateTime.Now.AddDays(365)
 			};
 
 			File.WriteAllText(SessionFile, JsonSerializer.Serialize(sessionData, new JsonSerializerOptions { WriteIndented = true }));
 		}
 
-		// Settings を iCrawledTw.Program.Settings に明示的に変更
 		public static bool LoadSession(IWebDriver driver)
 		{
 			if (!File.Exists(SessionFile)) return false;
@@ -1369,16 +1356,15 @@ namespace iCrawledTw
 			var sessionData = JsonSerializer.Deserialize<SessionData>(json);
 			if (sessionData == null || DateTime.Now > sessionData.Expires) return false;
 
-			driver.Navigate().GoToUrl("https://x.com"); // クッキーを適用する前にベースURLにアクセス
+			driver.Navigate().GoToUrl("https://x.com");
 			foreach (var cookie in sessionData.Cookies)
 			{
 				driver.Manage().Cookies.AddCookie(new OpenQA.Selenium.Cookie(
 					cookie.Name, cookie.Value, cookie.Domain, cookie.Path, cookie.Expiry));
 			}
 
-			// セッションが有効か確認
 			driver.Navigate().GoToUrl("https://x.com/home");
-			Thread.Sleep(2000); // ページロード待機
+			Thread.Sleep(2000);
 			if (!driver.Url.Contains("login"))
 			{
 				Program.SetMsg("前回のセッションを復元しました。ログインをスキップします。", true, Program.MsgType.Info, ConsoleColor.Green);
@@ -1387,14 +1373,12 @@ namespace iCrawledTw
 			return false;
 		}
 
-		// Remove the unused parameter 'settings' from the ClearSession method to fix IDE0060
 		public static void ClearSession()
 		{
 			if (File.Exists(SessionFile)) File.Delete(SessionFile);
 		}
 	}
 
-	// Cookieクラスの定義（シリアライズ用）
 	public class Cookie
 	{
 		public string? Name { get; set; }

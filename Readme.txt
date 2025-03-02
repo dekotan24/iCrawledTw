@@ -17,7 +17,7 @@
 		※コマンドラインから呼び出せる状態にすること
 
 	・Google Chrome
-		→クロールに使用
+		→メディアコンテンツの取得に使用
 
 	・ChromeDriver
 		→Chromeの自動制御に使用
@@ -28,7 +28,7 @@
 	◇ダウンロード
 		a. 「1: メディアURL解析」を選択
 		b. ダウンロードしたいユーザのプロフィールページもしくは単ツイートURLを入力
-		c. 自動クロールが実行される
+		c. 処理が実行される
 
 	◇設定変更
 		a. 「2: 設定画面」を選択
@@ -41,11 +41,5 @@
 	.NET 8.0-windows10.0.19041.0
 
 
-5. 作成者情報
-	作者：小倉 照孤（Ogura Deko）
-	メール：support@fanet.work
-	Web：https://fanet.work
-	GitHub：https://github.com/dekotan24/iCrawledTw
-
-	使用しているライブラリの著作権については、それぞれに帰属します。
-	Copyright (c) Ogura Deko Program rights reserved.
+5. 注意
+	Twitterの利用規約等を十分に確認した上でご利用ください。
